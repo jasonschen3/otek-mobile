@@ -1,33 +1,28 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BACKEND_IP } from "../constants";
 
-const LoginPage = ({ navigation }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const LoginPage = () => {
+  const [username, setUsername] = useState("jasonschen");
+  const [password, setPassword] = useState("1234");
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
-    // Add your login logic here
     try {
-      const response = await fetch(`${BACKEND_IP}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
+      const response = await axios.post(`${BACKEND_IP}/login`, {
+        username,
+        password,
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        // Handle successful login
-        Alert.alert("Login Successful");
-        navigation.navigate("Home"); // Navigate to home screen or any other screen
-      } else {
-        // Handle login failure
-        Alert.alert("Login Failed", "Invalid username or password");
+      if (response.status === 200) {
+        await AsyncStorage.setItem("token", response.data.token);
+        navigation.navigate("Home");
       }
     } catch (error) {
-      Alert.alert("Error", "Something went wrong");
+      Alert.alert("Invalid credentials", error);
+      console.log("Error ", error);
     }
   };
 
@@ -49,7 +44,7 @@ const LoginPage = ({ navigation }) => {
         secureTextEntry
         autoCapitalize="none"
       />
-      <Button title="Login" onPress={handleLogin} />
+      <Button title="Login" onPress={handleLogin} color="#6200EE" />
     </View>
   );
 };
@@ -59,20 +54,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#e0f7fa",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
+    color: "#333",
   },
   input: {
-    height: 40,
+    height: 50,
     borderColor: "#ccc",
     borderWidth: 1,
+    borderRadius: 8,
     marginBottom: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    backgroundColor: "#fff",
+  },
+  button: {
+    backgroundColor: "#6200EE",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 8,
   },
 });
 
