@@ -1,19 +1,3 @@
-export const getProjectStatus = (status) => {
-  switch (status) {
-    case 1:
-      return "Ongoing";
-    case 2:
-      return "Completed";
-    case 3:
-      return "Bill Submitted";
-    case 4:
-      return "To Be Submitted";
-    case 5:
-    default:
-      return "All";
-  }
-};
-
 export const formatMoney = (amount) => {
   if (!amount || isNaN(amount)) {
     return "";

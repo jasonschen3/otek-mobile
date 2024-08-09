@@ -6,14 +6,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 
 import { BACKEND_IP } from "../constants";
-import { getProjectStatus } from "../utils";
 
 const HomePage = () => {
   const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
   const navigation = useNavigation();
-  const [displayStatus, setDisplayStatus] = useState(5); // Default to All
+  const displayStatus = 1; // Always ongoing
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("All");
+
+  const [expenseType, setExpenseType] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState("");
 
   useEffect(() => {
     const fetchTokenAndProjects = async () => {
@@ -39,7 +42,7 @@ const HomePage = () => {
 
     fetchTokenAndProjects();
     fetchCompanies();
-  }, [navigation]);
+  }, [navigation, selectedCompany]);
 
   const fetchProjects = async (newDisplayStatus, newSelectedCompany) => {
     let token = await AsyncStorage.getItem("token");
@@ -58,39 +61,19 @@ const HomePage = () => {
     }
   };
 
-  const handleDisplayChange = async (value) => {
-    const newStatus = parseInt(value);
-    setDisplayStatus(newStatus);
-    fetchProjects(newStatus, selectedCompany);
+  const handleCompanyChange = async (value) => {
+    setSelectedCompany(value);
+    await fetchProjects(displayStatus, value);
   };
 
-  const handleCompanyChange = async (value) => {
-    const newSelectedCompanyName = value;
-    setSelectedCompany(newSelectedCompanyName);
-    await fetchProjects(displayStatus, newSelectedCompanyName);
+  const handleProjectChange = (value) => {
+    setSelectedProject(value);
   };
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Projects Report</Text>
       <View style={styles.selectorContainer}>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Project Status</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={displayStatus}
-              onValueChange={handleDisplayChange}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-            >
-              <Picker.Item label="All" value={5} />
-              <Picker.Item label="Ongoing" value={1} />
-              <Picker.Item label="Completed" value={2} />
-              <Picker.Item label="Bill Submitted" value={3} />
-              <Picker.Item label="To Be Submitted" value={4} />
-            </Picker>
-          </View>
-        </View>
         <View style={styles.formGroup}>
           <Text style={styles.label}>Company</Text>
           <View style={styles.pickerContainer}>
@@ -111,60 +94,35 @@ const HomePage = () => {
             </Picker>
           </View>
         </View>
-      </View>
-      <View style={styles.table}>
-        <View style={styles.tableRowHeader}>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.tableHeader,
-              styles.cellBorderRight,
-            ]}
-          >
-            Company
-          </Text>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.tableHeader,
-              styles.cellBorderRight,
-            ]}
-          >
-            Project #
-          </Text>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.tableHeader,
-              styles.cellBorderRight,
-            ]}
-          >
-            Status
-          </Text>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.tableHeader,
-              styles.cellBorderRight,
-            ]}
-          >
-            Project Name
-          </Text>
-        </View>
-        {projects.map((project) => (
-          <View key={project.project_id} style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.cellBorderRight]}>
-              {project.company_name}
-            </Text>
-            <Text style={[styles.tableCell, styles.cellBorderRight]}>
-              {project.project_number}
-            </Text>
-            <Text style={[styles.tableCell, styles.cellBorderRight]}>
-              {getProjectStatus(project.project_status)}
-            </Text>
-            <Text style={styles.tableCell}>{project.project_name}</Text>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Project Name</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedProject}
+              onValueChange={handleProjectChange}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+            >
+              <Picker.Item label="Select a project" value={null} />
+              {projects.map((project) => (
+                <Picker.Item
+                  key={project.project_id}
+                  label={project.project_name}
+                  value={project.project_name}
+                />
+              ))}
+            </Picker>
           </View>
-        ))}
+        </View>
+      </View>
+      <View style={styles.projectDetail}>
+        {selectedProject ? (
+          <Text style={styles.selectedProjectText}>
+            Selected Project: {selectedProject}
+          </Text>
+        ) : (
+          <Text style={styles.selectedProjectText}>No project selected</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -181,35 +139,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: "center",
     color: "#333",
-  },
-  table: {
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  tableRowHeader: {
-    flexDirection: "row",
-    backgroundColor: "#e0e0e0",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  tableCell: {
-    flex: 1,
-    padding: 8,
-    fontSize: 12,
-    color: "#333",
-  },
-  tableHeader: {
-    fontWeight: "bold",
-  },
-  cellBorderRight: {
-    borderRightWidth: 1,
-    borderRightColor: "#ccc",
   },
   formGroup: {
     marginVertical: 10,
@@ -237,6 +166,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: 16,
+  },
+  projectDetail: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  selectedProjectText: {
+    fontSize: 18,
+    textAlign: "center",
+    color: "#333",
   },
 });
 

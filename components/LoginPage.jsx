@@ -6,13 +6,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BACKEND_IP } from "../constants";
 
 const LoginPage = () => {
+  // Change later
   const [username, setUsername] = useState("jasonschen");
   const [password, setPassword] = useState("1234");
   const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`${BACKEND_IP}/login`, {
+      const response = await axios.post(`${BACKEND_IP}/loginMobile`, {
         username,
         password,
       });
