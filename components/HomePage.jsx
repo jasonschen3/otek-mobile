@@ -121,6 +121,7 @@ const HomePage = () => {
     }
 
     let token = await AsyncStorage.getItem("token");
+    const engineer_id = await AsyncStorage.getItem("engineer_id");
 
     try {
       // Select the project id first
@@ -138,6 +139,7 @@ const HomePage = () => {
         amount: parseFloat(expenseAmount),
         expense_date: expenseDate || new Date().toISOString(),
         pdf_url: formatUrl(pdfUrl),
+        engineer_id: engineer_id,
       };
 
       const res = await axios.post(`${BACKEND_IP}/addExpense`, expenseData, {

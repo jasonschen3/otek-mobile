@@ -18,7 +18,9 @@ const LoginPage = () => {
         password,
       });
       if (response.status === 200) {
-        await AsyncStorage.setItem("token", response.data.token);
+        const { token, engineer_id } = response.data;
+        await AsyncStorage.setItem("token", token);
+        await AsyncStorage.setItem("engineer_id", String(engineer_id));
         navigation.navigate("Home");
       }
     } catch (error) {
